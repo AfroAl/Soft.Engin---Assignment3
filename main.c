@@ -4,17 +4,17 @@
 #include <time.h>
 #include "crossfireOperations.h"
 #define MAX_PLAY 6
-#define MAX_SLOT 7
+#define MAX_SLOTS 7
 
 int main(void)
 {
     enum playerType playerType[4];
-    int row, column, boardSize, playSize;
+    int row, col, boardSize, playSize, playNum;
     srand(time(NULL));
     int i=0, a, b, j;
 
-    struct slot *currSlot = NULL;
-    struct slot *foundSlots;
+    struct slots *currslots1 = NULL;
+    struct slots *foundslots;
     bool explored[BOARD_SIZE][BOARD_SIZE];
     int count=0;
 
@@ -26,8 +26,6 @@ int main(void)
     struct player players[MAX_PLAY];
     struct player x[MAX_PLAY][MAX_PLAY];
 
-    struct slot slots[MAX_SLOT][MAX_SLOT];
-
 
     printf("Please enter the number of players (Max 6): ");
     scanf("%d", &playSize);
@@ -38,7 +36,8 @@ int main(void)
         exit(0);
     }
 
-    printf("Each player next must choose an archtype.\n");
+
+    printf("Each player next must enter their name & choose an archtype.\n");
     printf("Human(0), Ogre(1), Wizard(2), Elf(3)\n");
 
     while(i<playSize)
@@ -51,7 +50,7 @@ int main(void)
 
     boardSize = getBoardSize();
 
-    createBoard(BOARD_SIZE,&upLeft, &upRight, &downLeft, &downRight);
+    createBoard(BOARD_SIZE, &upLeft, &upRight, &downLeft, &downRight);
 
     for(i=0;i<boardSize;i++)
     {
@@ -73,7 +72,7 @@ int main(void)
 
     printf("\n");
 
-    //Gives each slot a random slot type
+    //Gives each slots a random slots type
     for(i=0;i<boardSize;i++)
     {
         for(j=0;j<boardSize;j++)
@@ -141,22 +140,22 @@ int main(void)
 
     //-----------------------------------------------------------------------------------------
 
-    int quitCheck[playSize], liveCheck=playSize, quit=0;
+    int quitCheck[playSize], quit=0, liveCheck = playSize, skip=0;
 
     for(i=0;i<playSize;i++)
     {
         quitCheck[i] = -1;
     }
 
-    while(liveCheck != 1 && quit != playSize)
+    while(liveCheck > 1)
     {
-        for(int playNum=0;playNum<playSize;playNum++)
+        for(playNum=0;playNum<playSize;playNum++)
         {
             for(a=0;a<playSize;a++)
             {
                 if(quitCheck[a] == playNum)
                 {
-                    printf("DURP\n");
+                    goto SKIP;
                 }
             }
 
@@ -167,285 +166,35 @@ int main(void)
             scanf(" %c", &ans);
 
             //Player wants to move
-            if(ans == 'M')
+            if(ans == 'M' || ans =='m')
             {
+
+                for(a=0;a<boardSize;a++)
+                {
+                    for(b=0;b<boardSize;b++)
+                    {
+                        printf("%d ", slots[a][b].place[a][b]);
+                    }
+                    printf("\n");
+                }
                 for(a=0;a<boardSize;a++)
                 {
                     for(b=0;b<boardSize;b++)
                     {
                         if(slots[a][b].place[a][b] == playNum+1)
                         {
-                            row = a;
-                            column = b;
+                            goto MOVE;
                         }
                     }
                 }
 
-                getDesiredElement(BOARD_SIZE, &row,&column);
-
-                if(row >= BOARD_SIZE/2)
-                {
-                    if(column >= BOARD_SIZE/2)
-                    {
-                        currSlot = reachDesiredElement(row,column,downRight);
-                    } 
-                    else
-                    {
-                        currSlot = reachDesiredElement(row,column,downLeft);
-                    }
-                }
-                else
-                {
-                    if(column >= BOARD_SIZE/2)
-                    {  
-                        currSlot = reachDesiredElement(row,column, upRight);
-                    }
-                    else
-                    {
-                        currSlot = reachDesiredElement(row,column,upLeft);
-                    }
-                }
-                    /*int moveChoice;
-                    if(((currSlot->column) == 0) && ((currSlot->row) == 0))
-                    {
-                        printf("You can only move down(0) or right(1): ");
-                        scanf("%d", &moveChoice);
-
-                        if(moveChoice==0)
-                        {
-                            currSlot->tmpR = currSlot->row;
-                            currSlot->row = currSlot->rowPlus1;
-                            currSlot->rowPlus1 = currSlot->tmpR;
-                        }
-                        else if (moveChoice==1)
-                        {
-                            currSlot->tmpC = currSlot->column;
-                            currSlot->column = currSlot->colPlus1;
-                            currSlot->colPlus1 = currSlot->tmpC;
-                        }
-                        else
-                        {
-                            printf("You have just forfeited your turn.\n");
-                        }
-                    }
-                    else if(((currSlot->column) > 0) && (currSlot->column < 6) && ((currSlot->row) == 0))
-                    {
-                        printf("You can move left(0), down(1) or right(2): ");
-                        scanf("%d", &moveChoice);
-
-                        if(moveChoice==0)
-                        {
-                            currSlot->tmpC = currSlot->column;
-                            currSlot->column = currSlot->colMinus1;
-                            currSlot->colMinus1 = currSlot->tmpC;
-                        }
-                        else if(moveChoice==1)
-                        {
-                            currSlot->tmpR = currSlot->row;
-                            currSlot->row = currSlot->rowPlus1;
-                            currSlot->rowPlus1 = currSlot->tmpR;
-                        }
-                        else if(moveChoice==2)
-                        {
-                            currSlot->tmpC = currSlot->column;
-                            currSlot->column = currSlot->colPlus1;
-                            currSlot->colPlus1 = currSlot->tmpC;
-                        }
-                        else
-                        {
-                            printf("You have just forfeited your turn.\n");
-                        }
-                    }
-                    else if(((currSlot->column) == 6) && ((currSlot->row) == 0))
-                    {
-                        printf("You can only move left(0) or down(1): ");
-                        scanf("%d", &moveChoice);
-
-                        if(moveChoice==0)
-                        {
-                            currSlot->tmpC = currSlot->column;
-                            currSlot->column = currSlot->colMinus1;
-                            currSlot->colMinus1 = currSlot->tmpC;
-                        }
-                        else if(moveChoice==1)
-                        {
-                            currSlot->tmpR = currSlot->row;
-                            currSlot->row = currSlot->rowPlus1;
-                            currSlot->rowPlus1 = currSlot->tmpR;
-                        }
-                        else
-                        {
-                            printf("You have just forfeited your turn.\n");
-                        }
-                    }
-                    else if(((currSlot->column) == 6) && ((currSlot->row) > 0) && ((currSlot->row) < 6))
-                    {
-                        printf("You can move up(0), left(1) or down(2): ");
-                        scanf("%d", &moveChoice);
-
-                        if(moveChoice==0)
-                        {
-                            currSlot->tmpR = currSlot->row;
-                            currSlot->row = currSlot->rowMinus1;
-                            currSlot->rowMinus1 = currSlot->tmpR; 
-                        }
-                        else if(moveChoice==1)
-                        {
-                            currSlot->tmpC = currSlot->column;
-                            currSlot->column = currSlot->colMinus1;
-                            currSlot->colMinus1 = currSlot->tmpC;
-                        }
-                        else if(moveChoice==2)
-                        {
-                            currSlot->tmpR = currSlot->row;
-                            currSlot->row = currSlot->rowPlus1;
-                            currSlot->rowPlus1 = currSlot->tmpR;
-                        }
-                        else
-                        {
-                            printf("You have just forfeited your turn.\n");
-                        }
-                    }
-                    else if(((currSlot->column) == 6) && ((currSlot->row) == 6))
-                    {
-                        printf("You can only move up(0) or left(1): ");
-                        scanf("%d", &moveChoice);
-
-                        if(moveChoice==0)
-                        {
-                            currSlot->tmpR = currSlot->row;
-                            currSlot->row = currSlot->rowMinus1;
-                            currSlot->rowMinus1 = currSlot->tmpR;
-                        }
-                        else if(moveChoice==1)
-                        {
-                            currSlot->tmpC = currSlot->column;
-                            currSlot->column = currSlot->colMinus1;
-                            currSlot->colMinus1 = currSlot->tmpC;
-                        }
-                        else
-                        {
-                            printf("You have just forfeited your turn.\n");
-                        }
-                    }
-                    else if(((currSlot->column) > 0) && ((currSlot->column < 6) && (currSlot->row) == 6))
-                    {
-                        printf("You can move left(0), up(1) or right(2): ");
-                        scanf("%d", &moveChoice);
-
-                        if(moveChoice==0)
-                        {
-                            currSlot->tmpC = currSlot->column;
-                            currSlot->column = currSlot->colMinus1;
-                            currSlot->colMinus1 = currSlot->tmpC;
-                        }
-                        else if(moveChoice==1)
-                        {
-                            currSlot->tmpR = currSlot->row;
-                            currSlot->row = currSlot->rowMinus1;
-                            currSlot->rowMinus1 = currSlot->tmpR;
-                        }
-                        else if(moveChoice==2)
-                        {
-                            currSlot->tmpC = currSlot->column;
-                            currSlot->column = currSlot->colPlus1;
-                            currSlot->colPlus1 = currSlot->tmpC;
-                        }
-                        else
-                        {
-                            printf("You have just forfeited your turn.\n");
-                        }
-                    }
-                    else if(((currSlot->column) == 0) && ((currSlot->row) == 6))
-                    {
-                        printf("You can only move up(0) or right(1): ");
-                        scanf("%d", &moveChoice);
-
-                        if(moveChoice==0)
-                        {
-                            currSlot->tmpR = currSlot->row;
-                            currSlot->row = currSlot->rowMinus1;
-                            currSlot->rowMinus1 = currSlot->tmpR;
-                        }
-                        else if(moveChoice==1)
-                        {
-                            currSlot->tmpC = currSlot->column;
-                            currSlot->column = currSlot->colPlus1;
-                            currSlot->colPlus1 = currSlot->tmpC;
-                        }
-                        else
-                        {
-                            printf("You have just forfeited your turn.\n");
-                        }
-                    }
-                    else if(((currSlot->column) == 0) && ((currSlot->row) > 0) && ((currSlot->row) < 6))
-                    {
-                        printf("You can move up(0), right(1) or down(2): ");
-                        scanf("%d", &moveChoice);
-
-                        if(moveChoice==0)
-                        {
-                            currSlot->tmpR = currSlot->row;
-                            currSlot->row = currSlot->rowMinus1;
-                            currSlot->rowMinus1 = currSlot->tmpR;
-                        }
-                        else if(moveChoice==1)
-                        {
-                            currSlot->tmpC = currSlot->column;
-                            currSlot->column = currSlot->colPlus1;
-                            currSlot->colPlus1 = currSlot->tmpC;
-                        }
-                        else if(moveChoice==2)
-                        {
-                            currSlot->tmpR = currSlot->row;
-                            currSlot->row = currSlot->rowPlus1;
-                            currSlot->rowPlus1 = currSlot->tmpR;
-                        }
-                        else
-                        {
-                            printf("You have just forfeited your turn.\n");
-                        }
-                    }
-                    else if(((currSlot->column) > 0) && ((currSlot->column) < 6) && ((currSlot->row) < 6) && (currSlot->row) > 0)
-                    {
-                        printf("You can move up(0), down(1), left(2) or right(3): ");
-                        scanf("%d", &moveChoice);
-
-                        if(moveChoice==0)
-                        {
-                            currSlot->tmpR = currSlot->row;
-                            currSlot->row = currSlot->rowMinus1;
-                            currSlot->rowMinus1 = currSlot->tmpR;
-                        }
-                        else if(moveChoice==1)
-                        {
-                            currSlot->tmpR = currSlot->row;
-                            currSlot->row = currSlot->rowPlus1;
-                            currSlot->rowPlus1 = currSlot->tmpR;
-                        }
-                        else if(moveChoice==2)
-                        {
-                            currSlot->tmpC = currSlot->column;
-                            currSlot->column = currSlot->colPlus1;
-                            currSlot->colPlus1 = currSlot->tmpC;
-                        }
-                        else if(moveChoice==3)
-                        {
-                            currSlot->tmpC = currSlot->column;
-                            currSlot->column = currSlot->colMinus1;
-                            currSlot->colMinus1 = currSlot->tmpC;
-                        }
-                        else
-                        {
-                            printf("You have just forfeited your turn.\n");
-                        }
-                    }*/
+                MOVE : movePlayer(a, b, slots[a][b].place);
             }
-            else if(ans == 'A')
+            else if(ans == 'A' || ans == 'a')
             {
 
             }
-            else if(ans == 'Q')
+            else if(ans == 'Q' || ans == 'q')
             {
                 for(a=0;a<boardSize;a++)
                 {
@@ -454,64 +203,47 @@ int main(void)
                         if(slots[a][b].place[a][b] == playNum+1)
                         {
                             slots[a][b].place[a][b] = 0;
-                            quit++;
-                            quitCheck[i+1] = playNum+1;
+                            liveCheck--;
+                            quitCheck[playNum] = playNum;
                         }
                     }
                 }
             }
+            else
+            {
+                printf("You have forfeited your turn.\n");
+            }
+
+            SKIP : skip++;
         }
     }
 
-
-    //---------------------------------------------------------------------------------------
-    //ATTACK?????
-    /*getDesiredElement(BOARD_SIZE, &row,&column);
-
-    if(row >= BOARD_SIZE/2)
+    if(liveCheck == 1)
     {
-        if(column >= BOARD_SIZE/2)
-        {
-            currSlot = reachDesiredElement(row,column,downRight);
-        } 
-        else
-        {
-            currSlot = reachDesiredElement(row,column,downLeft);
-        }
+        printf("There is only one player left.\n");
     }
-    else
+    else if(liveCheck == 0)
     {
-        if(column >= BOARD_SIZE/2)
-        {
-            currSlot = reachDesiredElement(row,column, upRight);
-        }
-        else
-        {
-            currSlot = reachDesiredElement(row,column,upLeft);
-        }
-    }*/
+        printf("All players decided to quit.\n");
+    }
+    
+    //Prints out Player stats
+    printf("\n");
+    printf("The final totals of all players\n");
+    for(i=0;i<playSize;i++)
+    {
+        printf("%s ", players[i].Name);
 
-    //-----------------------------------------------------------------------------------
-    //ATTACK FINE PLAYER
-   /* for(int i=0; i<BOARD_SIZE; i++)
-    {
-        for(int j=0; j<BOARD_SIZE;j++)
+        switch(players[i].Type)
         {
-            explored[i][j] = false;
+            case 0: printf("(Human, "); break;
+            case 1: printf("(Ogre, "); break;
+            case 2: printf("(Wizard, "); break;
+            case 3: printf("(Elf, "); break;
         }
+
+        printf("%d)\n", players[i].lifePoints);
     }
 
-    foundSlots = malloc(BOARD_SIZE * BOARD_SIZE * sizeof(struct slot ));
-    printf("\n\nFunction findSlotsinvoked:\n");
-
-    if(currSlot!= NULL)
-    {
-        findSlots(REQ_DISTANCE, 0, currSlot, foundSlots, &count, explored);
-
-        for(int i=0; i<count; i++)
-        {
-            printf("(%d, %d)-> ",foundSlots[i].row, foundSlots[i].column);
-        }
-    }*/
     return 0;
 }

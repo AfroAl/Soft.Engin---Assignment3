@@ -15,12 +15,15 @@ struct slot
 	int column;
 	int terrainType;
 	int place[BOARD_SIZE][BOARD_SIZE];
+	int tmp;
+	int tmpR, tmpC;
+	int colMinus1, rowMinus1, rowPlus1, colPlus1;
 
 	struct slot *left;
 	struct slot *right;
 	struct slot *up;
 	struct slot *down;
-};
+}slots[BOARD_SIZE][BOARD_SIZE];
 
 enum playerType {human, ogre, wizard, elf};
 
@@ -35,10 +38,8 @@ struct player
 
 int getBoardSize();
 
-void getDesiredElement(int maxsize, int * row, int * col);
+void movePlayer(int a, int b, int place[BOARD_SIZE][BOARD_SIZE]);
 
 void createBoard(int boardSize, struct slot **upLeft, struct slot **upRight, struct slot **downLeft, struct slot **downRight);
-
-struct slot *  reachDesiredElement(int row, int column, struct slot * initialSlot);
 
 void findSlots(int reqDist, int currDist,  struct slot * currSlot, struct slot * foundSlots, int * count,  bool explored[7][7]);
