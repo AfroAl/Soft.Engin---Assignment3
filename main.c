@@ -12,7 +12,7 @@ int main(void)
     enum playerType playerType[4];
     int row, col, boardSize, playSize, playNum;
     srand(time(NULL));
-    int i=0, a, b, j, c, d, e;
+    int i=0, a, b, j, c;
     int currDist, reqDist, Attack[MAX_PLAY];
 
     struct slot *currSlot = NULL;
@@ -54,6 +54,7 @@ int main(void)
 
     createBoard(BOARD_SIZE, &upLeft, &upRight, &downLeft, &downRight);
 
+    //Sets up player placement
     for(i=0;i<boardSize;i++)
     {
         for(j=0;j<boardSize;j++)
@@ -63,14 +64,14 @@ int main(void)
     }
 
     i=1;
-    while(i<=playSize)
+    while(i<=playSize) //Places all players
     {
         a = rand()%boardSize;
         b = rand()%boardSize;
 
         if(slots[a][b].place[a][b] != 0)
         {
-            slots[a][b].place[a][b] = (i*10)+(slots[a][b].place[a][b]);
+            slots[a][b].place[a][b] = (i*10)+(slots[a][b].place[a][b]); //If 2+ players are in the slot
         }
         else
         {
@@ -96,6 +97,7 @@ int main(void)
         players[i].lifePoints = 100;
     }
 
+    //Resets explored slots
     for(i=0;i<7;i++)
     {   
         for(j=0;j<7;j++)
@@ -159,11 +161,13 @@ int main(void)
 
     int quitCheck[playSize], quit=0, liveCheck = playSize, skip=0;
 
+    //Sets quitCheck array
     for(i=0;i<playSize;i++)
     {
         quitCheck[i] = -1;
     }
 
+    //Allows for rounds
     while(liveCheck > 1)
     {
         for(playNum=0;playNum<playSize;playNum++)
@@ -171,14 +175,15 @@ int main(void)
             for(a=0;a<playSize;a++)
             {
                 if(quitCheck[a] == playNum)
-                {
+                {   
+                    //Skips if player is dead or quits
                     goto SKIP;
                 }
             }
 
             char ans;
             printf("\n");
-            printf("Player %d's Turn:\n", playNum+1);
+            printf("Player %d's Turn:\n", playNum+1); //Asks player what they want to do
             printf("Would you like to move(M), attack(A) a player or quit(Q) the game?\n");
             scanf(" %c", &ans);
             printf("\n");
@@ -191,7 +196,7 @@ int main(void)
                 {
                     for(b=0;b<boardSize;b++)
                     {
-                        printf("%d ", slots[a][b].place[a][b]);
+                        printf("%d ", slots[a][b].place[a][b]); //Prints board
                     }
                     printf("\n");
                 }
@@ -199,7 +204,7 @@ int main(void)
                 {
                     for(b=0;b<boardSize;b++)
                     {
-                        if(slots[a][b].place[a][b] == playNum+1)
+                        if(slots[a][b].place[a][b] == playNum+1) //Finds player
                         {
                             goto MOVE;
                         }
@@ -208,6 +213,7 @@ int main(void)
 
                 MOVE : movePlayer(a, b, slots[a][b].place);
 
+                //Changes stats according to terrain type
                 if(slots[a][b].terrainType == 1)
                 {
                     printf("Current position: Level ground. No status change at this terrain. \n");
@@ -257,6 +263,7 @@ int main(void)
                     }
                 }
             }
+            //Attacking
             else if(ans == 'A' || ans == 'a')
             {
                 for(a=0;a<boardSize;a++)
@@ -266,7 +273,7 @@ int main(void)
                         if(slots[a][b].place[a][b] == playNum+1)
                         {
                             row = a;
-                            col = b;
+                            col = b; //Finds players row & column
                         }
                     }
                 }
@@ -285,11 +292,21 @@ int main(void)
                 fflush(stdin);
                 scanf("%c", &atk);
                 
-                if(atk == 'N' || atk == 'n')
+                if(atk == 'N' || atk == 'n') //Near attack
                 {
+                    count = 0;
+                    for(i=0;i<7;i++)
+                    {   
+                        for(j=0;j<7;j++)
+                        {      
+                            explored[i][j] = false;  
+                        }   
+                    }
+
                     reqDist = 1;
                     currSlot = reachDesiredElement(row,col,upLeft);
 
+                    foundSlots = NULL;
                     foundSlots = malloc(16 * sizeof(struct slot));
 
                     if(currSlot != NULL)
@@ -315,7 +332,7 @@ int main(void)
                     }
 
                     c=0;
-                    for(i=0;i<=j;i++)
+                    for(i=0;i<j;i++)
                     {
                         if(Attack[i] == 0)
                         {
@@ -332,7 +349,10 @@ int main(void)
                         printf("You can attack player(s) \n");
                         for(i=0;i<j-1;i++)
                         {
-                            printf("%d, ", Attack[i]);
+                            if(Attack[i] != 0)
+                            {
+                                printf("%d, ", Attack[i]);
+                            }
                         }
                         printf("%d. Which one? ", Attack[i]);
                         int defend;
@@ -352,13 +372,9 @@ int main(void)
                         }
                     }
                 }  
-                else if(atk == 'D' || atk == 'd')
+                else if(atk == 'D' || atk == 'd') //Distant attack
                 {
                     count = 0;
-                    for(i=0;i<playSize;i++)
-                    {
-                        Attack[i] = 0;
-                    }
                     for(i=0;i<7;i++)
                     {   
                         for(j=0;j<7;j++)
@@ -366,6 +382,7 @@ int main(void)
                             explored[i][j] = false;  
                         }   
                     }
+                    foundSlots = NULL;
                     for(i=2;i<5;i++)
                     {
                         reqDist = i;
@@ -379,6 +396,7 @@ int main(void)
                         }
                     }
 
+                    printf("%dc\n", count);
                     j=0;
                     for(i=0;i<count;i++)
                     {
@@ -394,11 +412,6 @@ int main(void)
                                 }
                             }
                         }
-                    }
-                    printf("%d\n", j);
-                    for(i=0;i<=j;i++)
-                    {
-                        printf("%d ", Attack[i]);
                     }
 
                     c=0;
@@ -419,7 +432,10 @@ int main(void)
                         printf("You can attack player(s) \n");
                         for(i=0;i<j-1;i++)
                         {
-                            printf("%d, ", Attack[i]);
+                            if(Attack[i] != 0)
+                            {
+                                printf("%d, ", Attack[i]);
+                            }
                         }
                         printf("%d. Which one? ", Attack[i]);
                         int defend;
@@ -438,7 +454,7 @@ int main(void)
                         }
                     }
                 }
-                else if(atk == 'M' || atk == 'm')
+                else if(atk == 'M' || atk == 'm') //Magic attack
                 {    
                     printf("You can attack any player. Enter a player number: ");
                     int defend;
@@ -457,6 +473,7 @@ int main(void)
                     }
                 }
             }
+            //Player wants to quit
             else if(ans == 'Q' || ans == 'q')
             {
                 for(a=0;a<boardSize;a++)
@@ -469,7 +486,7 @@ int main(void)
                             liveCheck--;
                             quitCheck[playNum] = playNum;
                         }
-                        else if(slots[a][b].place[a][b] >= 10)
+                        else if(slots[a][b].place[a][b] >= 10) //If two player in one slot
                         {
                             int choice1 = (slots[a][b].place[a][b])/10;
                             int choice2 = (slots[a][b].place[a][b])%10;
