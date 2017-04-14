@@ -79,39 +79,30 @@ struct slot * reachDesiredElement(int row, int column, struct slot * initialSlot
 	bool found = false;
 	struct slot * currentSlot = initialSlot;
 
-	printf("\nFunction reachDesiredElement invoked\n");
-
-	printf("Initial slot (%d, %d) -> \n",initialSlot->row,initialSlot->column);
-
 	while(found == false)
 	{
 		if(currentSlot->row > row)
 		{
 			currentSlot = currentSlot->up;
-			printf("Current slot (%d, %d) -> \n",currentSlot->row,currentSlot->column);
 		}
 
 		if(currentSlot->row < row)
 		{
 			currentSlot = currentSlot->down;
-			printf("Current slot (%d, %d) -> \n",currentSlot->row,currentSlot->column);
 		}
 
 		if(currentSlot->column > column)
 		{
 			currentSlot = currentSlot->left;
-			printf("Current slot (%d, %d) -> \n",currentSlot->row,currentSlot->column);
 		}
 
 		if(currentSlot->column < column)
 		{
 			currentSlot = currentSlot->right;
-			printf("Current slot (%d, %d) -> \n",currentSlot->row,currentSlot->column);
 		}
 
 		if(currentSlot->column == column && currentSlot->row == row)
 		{
-			printf("Found\n");
 			found = true;
 		}
 
@@ -151,6 +142,4 @@ void findSlots(int reqDist, int currDist,  struct slot * currSlot, struct slot *
 		}
 
 	}
-
-
 }

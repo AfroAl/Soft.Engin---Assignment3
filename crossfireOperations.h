@@ -1,5 +1,5 @@
-#ifndef CROSSFIREOPERATIONS_H_
 #define CROSSFIREOPERATIONS_H_
+#ifndef CROSSFIREOPERATIONS_H_
 
 #endif /* CROSSFIREOPERATIONS_H_ */
 
@@ -39,6 +39,8 @@ struct player
 int getBoardSize();
 
 void movePlayer(int a, int b, int place[BOARD_SIZE][BOARD_SIZE]);
+
+struct slot *  reachDesiredElement(int row, int column, struct slot * initialSlot);
 
 void createBoard(int boardSize, struct slot **upLeft, struct slot **upRight, struct slot **downLeft, struct slot **downRight);
 
